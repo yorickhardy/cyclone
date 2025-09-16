@@ -1005,7 +1005,8 @@ typedef struct {
  * Allocate a new string, either on the stack or heap depending upon size
  */
 #define alloc_string(_data, _s, _len, _num_cp) \
-  if (_len >= MAX_STACK_OBJ) { \
+  int stack_left = Cyc_stack_remaining(data); \
+  if (_len >= stack_left) { \
     int heap_grown; \
     _s = gc_alloc(((gc_thread_data *)data)->heap,  \
                  sizeof(string_type) + _len + 1, \
@@ -1034,7 +1035,8 @@ typedef struct {
  * Allocate a new bytevector, either on the stack or heap depending upon size
  */
 #define alloc_bytevector(_data, _bv, _len) \
-  if (_len >= MAX_STACK_OBJ) { \
+  int stack_left = Cyc_stack_remaining(data); \
+  if (_len >= stack_left) { \
     int heap_grown; \
     _bv = gc_alloc(((gc_thread_data *)data)->heap, \
                   sizeof(bytevector_type) + _len, \
