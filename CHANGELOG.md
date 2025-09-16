@@ -15,6 +15,7 @@ Bug Fixes
 - Added a fix from Yorick Hardy to define `*ai-v4mapped*` to zero on platforms where `AI_V4MAPPED` is undefined.
 - Updated `sqrt` to properly handle complex results given non-complex input. EG: `(sqrt -1) ==> 1i`. And updated the parser to properly handle `+i` and `-i`. Thanks to Christopher Hebert for the bug reports!
 - Updated `cond-expand` to raise an error if no clauses match, instead of returning `#t`.
+- Use remaining stack size to determine where to allocate large objects. This avoids the possibility of a large object overflowing the stack.
 
 ## 0.36.0 - February 14, 2024
 
