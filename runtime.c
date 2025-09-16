@@ -8930,3 +8930,11 @@ object Cyc_exact_no_cps(void *data, object ptr, object z)
   }
   return obj_int2obj(i);
 }
+
+int Cyc_stack_remaining(gc_thread_data *td) 
+{
+  int i;
+  int stack_remaining = stack_delta(&i, td->stack_limit);
+  //printf("JAE DEBUG stack remaining = %ld\n", stack_remaining);
+  return stack_remaining;
+}

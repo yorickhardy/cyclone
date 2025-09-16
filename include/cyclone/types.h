@@ -500,6 +500,13 @@ void Cyc_make_shared_object(void *data, object k, object obj);
 #define stack_overflow(x,y) ((x) > (y))
 #endif
 
+/** Determine remaining stack size */
+#if STACK_GROWTH_IS_DOWNWARD
+#define stack_delta(x,y) (((char *)x) - ((char *)y))
+#else
+#define stack_delta(x,y) (((char *)y) - ((char *)x))
+#endif
+
 /**
  * Access an object's forwarding pointer.
  * Note this is only applicable when objects are relocated
