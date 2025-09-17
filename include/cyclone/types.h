@@ -1005,6 +1005,7 @@ typedef struct {
  * Allocate a new string, either on the stack or heap depending upon size
  */
 #define alloc_string(_data, _s, _len, _num_cp) \
+ { \
   int stack_left = Cyc_stack_remaining(data); \
   if (_len >= stack_left) { \
     int heap_grown; \
@@ -1029,12 +1030,14 @@ typedef struct {
     ((string_type *)_s)->len = _len; \
     ((string_type *)_s)->num_cp = _num_cp; \
     ((string_type *)_s)->str = alloca(sizeof(char) * (_len + 1)); \
-  }
+  } \
+ }
 
 /**
  * Allocate a new bytevector, either on the stack or heap depending upon size
  */
 #define alloc_bytevector(_data, _bv, _len) \
+ { \
   int stack_left = Cyc_stack_remaining(data); \
   if (_len >= stack_left) { \
     int heap_grown; \
@@ -1057,7 +1060,8 @@ typedef struct {
     ((bytevector) _bv)->tag = bytevector_tag; \
     ((bytevector) _bv)->len = _len; \
     ((bytevector) _bv)->data = alloca(sizeof(char) * _len); \
-  }
+  } \
+ }
 
 /** Get the length of a string, in characters (code points) */
 #define string_num_cp(x) (((string_type *) x)->num_cp)
