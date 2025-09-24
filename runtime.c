@@ -2799,10 +2799,18 @@ void dispatch_string_91append(void *data, object clo, int _argc, object * _args)
 {
   int argc = _argc - 1;         // Skip continuation
   object *args = _args + 1;     // Skip continuation
-  int i = 0, total_cp = 0, total_len = 1;
+  int i = 0, total_cp = 0, total_len = 0;
   int *len = alloca(sizeof(int) * argc);
-  char *buffer, *bufferp, **str = alloca(sizeof(char *) * argc);
-  object tmp;
+  char *bufferp, **str = alloca(sizeof(char *) * argc);
+  object tmp, result;
+  if (argc == 0) {
+    make_string(r, "");
+    return_closcall1(data, clo, &r);
+  }
+  if (argc == 1) {
+    Cyc_check_str(data, args[0]);
+    return_closcall1(data, clo, args[0]);
+  }
   for (i = 0; i < argc; i++) {
     tmp = args[i];
     Cyc_check_str(data, tmp);
@@ -2811,32 +2819,39 @@ void dispatch_string_91append(void *data, object clo, int _argc, object * _args)
     total_len += len[i];
     total_cp += string_num_cp((tmp));
   }
-  buffer = bufferp = alloca(sizeof(char) * total_len);
+  alloc_string(data, result, sizeof(char) * total_len, total_cp);
+  bufferp = ((string_type *) result)->str;
   for (i = 0; i < argc; i++) {
     memcpy(bufferp, str[i], len[i]);
     bufferp += len[i];
   }
   *bufferp = '\0';
-  make_string(result, buffer);
-  string_num_cp((&result)) = total_cp;
-  return_closcall1(data, clo, &result);
+  return_closcall1(data, clo, result);
 }
 
 object Cyc_string_append(void *data, object cont, int argc, object str1, ...)
 {
+  int i = 0, total_cp = 0, total_len = 0;
+  int *len;
+  char *bufferp, **str;
+  object tmp, result;
   va_list ap;
-  va_start(ap, str1);
-  int i = 0, total_cp = 0, total_len = 1;
-  int *len = alloca(sizeof(int) * argc);
-  char *buffer, *bufferp, **str = alloca(sizeof(char *) * argc);
-  object tmp;
-  if (argc > 0) {
-    Cyc_check_str(data, str1);
-    str[i] = ((string_type *) str1)->str;
-    len[i] = string_len((str1));
-    total_len += len[i];
-    total_cp += string_num_cp((str1));
+  if (argc == 0) {
+    make_string(r, "");
+    _return_closcall1(data, cont, &r);
   }
+  if (argc == 1) {
+    Cyc_check_str(data, str1);
+    _return_closcall1(data, cont, str1);
+  }
+  len = alloca(sizeof(int) * argc);
+  str = alloca(sizeof(char *) * argc);
+  va_start(ap, str1);
+  Cyc_check_str(data, str1);
+  str[i] = ((string_type *) str1)->str;
+  len[i] = string_len((str1));
+  total_len += len[i];
+  total_cp += string_num_cp((str1));
   for (i = 1; i < argc; i++) {
     tmp = va_arg(ap, object);
     Cyc_check_str(data, tmp);
@@ -2845,16 +2860,15 @@ object Cyc_string_append(void *data, object cont, int argc, object str1, ...)
     total_len += len[i];
     total_cp += string_num_cp((tmp));
   }
-  buffer = bufferp = alloca(sizeof(char) * total_len);
+  alloc_string(data, result, sizeof(char) * total_len, total_cp);
+  bufferp = ((string_type *) result)->str;
   for (i = 0; i < argc; i++) {
     memcpy(bufferp, str[i], len[i]);
     bufferp += len[i];
   }
   *bufferp = '\0';
-  make_string(result, buffer);
-  string_num_cp((&result)) = total_cp;
   va_end(ap);
-  _return_closcall1(data, cont, &result);
+  _return_closcall1(data, cont, result);
 }
 
 object Cyc_string_length(void *data, object str)
@@ -3327,11 +3341,18 @@ void dispatch_bytevector_91append(void *data, object clo, int _argc,
   int argc = _argc - 1;         // Skip continuation
   object *args = _args + 1;     // Skip continuation
   int i = 0, buf_idx = 0, total_length = 0;
-  object tmp;
+  object tmp, result;
   char *buffer;
   char **buffers = NULL;
   int *lengths = NULL;
-  make_empty_bytevector(result);
+  if (argc == 0) {
+    make_empty_bytevector(r);
+    return_closcall1(data, clo, &r);
+  }
+  if (argc == 1) {
+    Cyc_check_bvec(data, args[0]);
+    return_closcall1(data, clo, args[0]);
+  }
   if (argc > 0) {
     buffers = alloca(sizeof(char *) * argc);
     lengths = alloca(sizeof(int) * argc);
@@ -3342,26 +3363,32 @@ void dispatch_bytevector_91append(void *data, object clo, int _argc,
       lengths[i] = ((bytevector) tmp)->len;
       buffers[i] = ((bytevector) tmp)->data;
     }
-    buffer = alloca(sizeof(char) * total_length);
+    alloc_bytevector(data, result, total_length);
+    buffer = ((bytevector) result)->data;
     for (i = 0; i < argc; i++) {
       memcpy(&buffer[buf_idx], buffers[i], lengths[i]);
       buf_idx += lengths[i];
     }
-    result.len = total_length;
-    result.data = buffer;
   }
-  return_closcall1(data, clo, &result);
+  return_closcall1(data, clo, result);
 }
 
 object Cyc_bytevector_append(void *data, object cont, int argc, object bv, ...)
 {
   int i = 0, buf_idx = 0, total_length = 0;
   va_list ap;
-  object tmp;
+  object tmp, result;
   char *buffer;
   char **buffers = NULL;
   int *lengths = NULL;
-  make_empty_bytevector(result);
+  if (argc == 0) {
+    make_empty_bytevector(r);
+    _return_closcall1(data, cont, &r);
+  }
+  if (argc == 1) {
+    Cyc_check_bvec(data, bv);
+    _return_closcall1(data, cont, bv);
+  }
   if (argc > 0) {
     buffers = alloca(sizeof(char *) * argc);
     lengths = alloca(sizeof(int) * argc);
@@ -3378,15 +3405,14 @@ object Cyc_bytevector_append(void *data, object cont, int argc, object bv, ...)
       buffers[i] = ((bytevector) tmp)->data;
     }
     va_end(ap);
-    buffer = alloca(sizeof(char) * total_length);
+    alloc_bytevector(data, result, total_length);
+    buffer = ((bytevector) result)->data;
     for (i = 0; i < argc; i++) {
       memcpy(&buffer[buf_idx], buffers[i], lengths[i]);
       buf_idx += lengths[i];
     }
-    result.len = total_length;
-    result.data = buffer;
   }
-  _return_closcall1(data, cont, &result);
+  _return_closcall1(data, cont, result);
 }
 
 object Cyc_bytevector_copy(void *data, object cont, object bv, object start,
