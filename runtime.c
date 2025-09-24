@@ -3185,7 +3185,7 @@ object Cyc_make_vector(void *data, object cont, int argc, object len, ...)
   object v = NULL;
   object fill = boolean_f;
   int i, ulen;
-  size_t element_vec_size;
+  size_t element_vec_size, alloc_required;
   va_list ap;
   make_pair(tmp_pair, NULL, NULL);
   make_c_opaque(opq, NULL);
@@ -3197,14 +3197,15 @@ object Cyc_make_vector(void *data, object cont, int argc, object len, ...)
   Cyc_check_num(data, len);
   ulen = unbox_number(len);
   element_vec_size = sizeof(object) * ulen;
+  alloc_required = sizeof(vector_type) + element_vec_size;
 
-  if (element_vec_size >= Cyc_stack_remaining(data)) {
+  if (alloc_required >= Cyc_stack_remaining(data)) {
     // If vector is too large to allocate on the stack, allocate on heap
     //
     // TODO: mark this thread as potentially blocking before doing
     //       the allocation????
     int heap_grown;
-    v = gc_alloc(((gc_thread_data *) data)->heap, sizeof(vector_type) + element_vec_size, boolean_f,    // OK to populate manually over here
+    v = gc_alloc(((gc_thread_data *) data)->heap, alloc_required, boolean_f,    // OK to populate manually over here
                  (gc_thread_data *) data, &heap_grown);
     ((vector) v)->hdr.mark = ((gc_thread_data *) data)->gc_alloc_color;
     ((vector) v)->hdr.grayed = 0;
@@ -3648,16 +3649,17 @@ object Cyc_list2vector(void *data, object cont, object l)
   object len_obj;
   object lst = l;
   int len, i = 0;
-  size_t element_vec_size;
+  size_t element_vec_size, alloc_required;
 
   make_c_opaque(opq, NULL);
   Cyc_check_pair_or_null(data, l);
   len_obj = Cyc_length(data, l);
   len = obj_obj2int(len_obj);
   element_vec_size = sizeof(object) * len;
-  if (element_vec_size >= Cyc_stack_remaining(data)) {
+  alloc_required = sizeof(vector_type) + element_vec_size;
+  if (alloc_required >= Cyc_stack_remaining(data)) {
     int heap_grown;
-    v = gc_alloc(((gc_thread_data *) data)->heap, sizeof(vector_type) + element_vec_size, boolean_f,    // OK to populate manually over here
+    v = gc_alloc(((gc_thread_data *) data)->heap, alloc_required, boolean_f,    // OK to populate manually over here
                  (gc_thread_data *) data, &heap_grown);
     ((vector) v)->hdr.mark = ((gc_thread_data *) data)->gc_alloc_color;
     ((vector) v)->hdr.grayed = 0;
